@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <div id="map" style="height: 400px;"></div>
+    <script>
+        // Initialize map
+        var map = L.map('map').setView([28.6139, 77.2090], 13); // Delhi coordinates
+        
+        // Add OSM tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Variables for markers
+        var sourceMarker, destMarker;
+        
+        // Function to communicate with Appian
+        function sendLocationToAppian(lat, lng, type) {
+            // This will be handled through Appian's interface
+            window.parent.postMessage({
+                action: 'locationSelected',
+                lat: lat,
+                lng: lng,
+                type: type
+            }, '*');
+        }
+        
+        // Map click handler
+        map.on('click', function(e) {
+            var clickType = document.getElementById('clickMode').value;
+            
+            if (clickType === 'source') {
+                if (sourceMarker) map.removeLayer(sourceMarker);
+                sourceMarker = L.marker([e.latlng.lat, e.latlng.lng])
+                    .addTo(map)
+                    .bindPopup('Source Location');
+                sendLocationToAppian(e.latlng.lat, e.latlng.lng, 'source');
+            } else if (clickType === 'destination') {
+                if (destMarker) map.removeLayer(destMarker);
+                destMarker = L.marker([e.latlng.lat, e.latlng.lng])
+                    .addTo(map)
+                    .bindPopup('Destination Location');
+                sendLocationToAppian(e.latlng.lat, e.latlng.lng, 'destination');
+            }
+        });
+    </script>
+    
+    <select id="clickMode">
+        <option value="source">Set Source</option>
+        <option value="destination">Set Destination</option>
+    </select>
+</body>
+</html>
